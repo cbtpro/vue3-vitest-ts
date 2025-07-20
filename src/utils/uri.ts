@@ -60,25 +60,36 @@ export function getQueryParams(url: string): Record<string, string | string[]> {
 }
 
 /**
-* 将给定的参数对象拼接到基础 URL，并返回完整的 URL 字符串。
-* 如果某个参数值为 NaN、undefined 或 null，会输出警告信息，但仍然会将其包含在 URL 中。
-* 
-* @param {string} baseUrl - 基础 URL。
-* @param {Record<string, any>} params - 要拼接的参数对象。
-* @returns {string} - 拼接参数后的完整 URL 字符串。
-*/
+ * 将给定的参数对象拼接到基础 URL，并返回完整的 URL 字符串。
+ * - 支持普通字符串、数字、布尔值、数组（会转换为逗号连接形式）。
+ * - 对参数进行 URI 编码。
+ * - 对 NaN、undefined、null 输出警告，但仍包含在 URL 中。
+ *
+ * @param {string} baseUrl - 基础 URL。
+ * @param {Record<string, any>} params - 要拼接的参数对象。
+ * @returns {string} - 拼接参数后的完整 URL 字符串。
+ */
 export function setQueryParams(baseUrl: string, params: Record<string, any>): string {
   const urlObj = new URL(baseUrl);
   const urlParams = new URLSearchParams(urlObj.search);
 
   for (const [key, value] of Object.entries(params)) {
-    const encodedKey = key;
-    const encodedValue = value;
+    let finalValue: string;
 
-    if (Number.isNaN(value) || typeof value === 'undefined' || value === null) {
-      console.warn(`警告: 参数 ${encodedKey} 的值为异常值 (${value})`);
+    if (Array.isArray(value)) {
+      finalValue = value.map(v => String(v)).join(',');
+    } else if (
+      value === null ||
+      typeof value === 'undefined' ||
+      (typeof value === 'number' && Number.isNaN(value))
+    ) {
+      finalValue = String(value);
+      console.warn(`警告: 参数 ${key} 的值为异常值 (${finalValue})`);
+    } else {
+      finalValue = String(value);
     }
-    urlParams.append(encodedKey, encodedValue);
+
+    urlParams.append(key, finalValue);
   }
 
   urlObj.search = urlParams.toString();

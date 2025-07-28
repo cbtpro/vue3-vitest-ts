@@ -21,7 +21,7 @@ export function getQueryParams(url: string): Record<string, string | string[]> {
 
   // 处理每个键
   for (const [key, values] of Object.entries(paramEntries)) {
-    if (values.length === 1) {
+    if (values.length === 1 && values[0] !== undefined) {
       const singleValue = values[0];
       // 尝试解析 JSON（如 `["value1","value2"]`）
       if (singleValue.startsWith('[') && singleValue.endsWith(']')) {
